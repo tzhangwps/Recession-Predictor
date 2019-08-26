@@ -13,10 +13,6 @@ Author: Terrence Zhang
 
 ## For Users
 ### Dependencies
-
-### How to Use the Code
-## For Users
-### Dependencies
 Python (3.6.4)
 \
 Modules: [requirements.txt](https://github.com/tzhangwps/Recession-Predictor/blob/master/requirements.txt)
