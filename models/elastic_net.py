@@ -96,7 +96,7 @@ class ElasticNet:
                 all_testing_y = pd.Series()
                 dates = []
                 self.log_loss_weights = []
-                for test_name in range(1, max(self.test_name + 1, 2)):
+                for test_name in range(1, self.test_name + 1):
                     self.cv_start = self.cv_params[test_name]['cv_start']
                     self.cv_end = self.cv_params[test_name]['cv_end']
                     self.get_cv_indices()
