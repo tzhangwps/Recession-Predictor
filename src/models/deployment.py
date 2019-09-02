@@ -16,8 +16,8 @@ class CrossValidate:
     
     
     def __init__(self):
-        self.cv_start = ''
-        self.cv_end = ''
+        self.cv_params = {}
+        self.test_name = ''
         self.full_df = pd.DataFrame()
         self.cv_indices = []
         self.feature_names = []
@@ -26,21 +26,8 @@ class CrossValidate:
         self.optimal_params_by_output = {}
         self.cv_metadata_by_output = {}
         self.cv_predictions_by_output = {}
-        
-        
-    def get_cv_indices(self):
-        """
-        Gets indices for rows to be used during cross-validation.
-        """
-        if self.full_df['Dates'][0] > self.full_df['Dates'][len(self.full_df) - 1]:
-            self.full_df = self.full_df[::-1]
-        self.full_df.reset_index(inplace=True)
-        self.full_df.drop('index', axis=1, inplace=True)
-        date_condition = ((self.full_df['Dates'] <= self.cv_end) &
-                          (self.full_df['Dates'] >= self.cv_start))
-        self.cv_indices = list(self.full_df[date_condition].index)
-        
-        
+
+                
     def walk_forward_cv(self):
         """
         Runs walk-forward cross-validation, and saves cross-validation
@@ -54,7 +41,8 @@ class CrossValidate:
             
             print('\t\t\t\t|--SVM Model')
             svm = SupportVectorMachine()
-            svm.cv_indices = self.cv_indices
+            svm.cv_params = self.cv_params
+            svm.test_name = self.test_name
             svm.full_df = self.full_df
             svm.feature_names = self.feature_names
             svm.output_name = output_name
@@ -66,15 +54,6 @@ class CrossValidate:
             self.optimal_params_by_output[output_name] = optimal_params_by_model
             self.cv_metadata_by_output[output_name] = cv_metadata_by_model
             self.cv_predictions_by_output[output_name] = cv_predictions_by_model
-        
-        
-    def run_cross_validation(self):
-        """
-        Gets indices for rows to be used during cross-validation, and performs
-        walk-forward cross-validation.
-        """
-        self.get_cv_indices()
-        self.walk_forward_cv()
 
 
 class Predict:
@@ -184,30 +163,30 @@ class Deployer:
         month = now.strftime('%m')
         year = now.year        
         most_recent_date = '{}-{}-01'.format(year, month)
-        self.testing_dates['1'] = {'cv_start': '1972-01-01', 
-                                  'cv_end': '1975-12-01', 
-                                  'pred_start': '1976-01-01',
-                                  'pred_end': '1981-07-01'}
-        self.testing_dates['2'] = {'cv_start': '1972-01-01', 
-                                  'cv_end': '1981-07-01', 
-                                  'pred_start': '1981-08-01',
-                                  'pred_end': '1983-07-01'}
-        self.testing_dates['3'] = {'cv_start': '1972-01-01', 
-                                  'cv_end': '1983-07-01', 
-                                  'pred_start': '1983-08-01',
-                                  'pred_end': '1992-12-01'}
-        self.testing_dates['4'] = {'cv_start': '1972-01-01', 
-                                  'cv_end': '1992-12-01', 
-                                  'pred_start': '1993-01-01',
-                                  'pred_end': '2003-07-01'}
-        self.testing_dates['5'] = {'cv_start': '1972-01-01', 
-                                  'cv_end': '2003-07-01', 
-                                  'pred_start': '2003-08-01',
-                                  'pred_end': '2010-09-01'}
-        self.testing_dates['6'] = {'cv_start': '1972-01-01', 
-                                  'cv_end': '2010-09-01', 
-                                  'pred_start': '2010-10-01',
-                                  'pred_end': most_recent_date}
+        self.testing_dates[1] = {'cv_start': '1972-01-01', 
+                                 'cv_end': '1975-12-01', 
+                                 'pred_start': '1976-01-01',
+                                 'pred_end': '1981-07-01'}
+        self.testing_dates[2] = {'cv_start': '1976-01-01', 
+                                 'cv_end': '1981-07-01', 
+                                 'pred_start': '1981-08-01',
+                                 'pred_end': '1983-07-01'}
+        self.testing_dates[3] = {'cv_start': '1976-01-01', 
+                                 'cv_end': '1983-07-01', 
+                                 'pred_start': '1983-08-01',
+                                 'pred_end': '1992-12-01'}
+        self.testing_dates[4] = {'cv_start': '1983-08-01', 
+                                 'cv_end': '1992-12-01', 
+                                 'pred_start': '1993-01-01',
+                                 'pred_end': '2003-07-01'}
+        self.testing_dates[5] = {'cv_start': '1993-01-01', 
+                                 'cv_end': '2003-07-01', 
+                                 'pred_start': '2003-08-01',
+                                 'pred_end': '2010-09-01'}
+        self.testing_dates[6] = {'cv_start': '2003-08-01', 
+                                 'cv_end': '2010-09-01', 
+                                 'pred_start': '2010-10-01',
+                                 'pred_end': most_recent_date}
     
     
     def perform_backtests(self):
@@ -224,9 +203,9 @@ class Deployer:
             cross_validation.feature_names = self.feature_names
             cross_validation.feature_dict = self.feature_dict
             cross_validation.full_df = self.final_df_output
-            cross_validation.cv_start = test_dates['cv_start']
-            cross_validation.cv_end = test_dates['cv_end']
-            cross_validation.run_cross_validation()
+            cross_validation.cv_params = self.testing_dates
+            cross_validation.test_name = test_name
+            cross_validation.walk_forward_cv()
             self.optimal_params['Test #{}'.format(test_name)] = cross_validation.optimal_params_by_output
             self.cv_model_metadata['Test #{}'.format(test_name)] = cross_validation.cv_metadata_by_output
             
