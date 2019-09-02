@@ -1,6 +1,6 @@
 # Recession-Predictor (0.1.0)
 ## Intro
-- [What does this code do?](https://medium.com/@tzhangwps/recession-prediction-using-machine-learning-de6eee16ca94)
+- [What does this code do?](https://medium.com/p/recession-prediction-using-machine-learning-de6eee16ca94?source=email-2adc3d3cd2ed--writer.postDistributed&sk=2f1dab9738769f9658634e61576a08bd)
 - [Chart](https://terrencez.com/recession-predictor-chart/)
 - [Link to Code](https://github.com/tzhangwps/Recession-Predictor/blob/master/RecessionPredictor_master.py)
 
