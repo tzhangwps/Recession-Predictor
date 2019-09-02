@@ -22,10 +22,10 @@ class WeightedAverage:
         self.metadata={}
         self.rank_scheme = {1: 0.25,
                             2: 0.25,
-                            3: 0.20,
-                            4: 0.15,
-                            5: 0.10,
-                            6: 0.05}
+                            3: 0.25,
+                            4: 0.25,
+                            5: 0.00,
+                            6: 0.00}
             
 
     def calculate_model_weights(self):
