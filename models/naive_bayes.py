@@ -13,6 +13,10 @@ class NaiveBayes:
 
     
     def __init__(self):
+        self.cv_params = {}
+        self.cv_start = ''
+        self.cv_end = ''
+        self.test_name = ''
         self.cv_indices = []
         self.pred_indices = []
         self.training_y = pd.DataFrame()
@@ -44,6 +48,19 @@ class NaiveBayes:
         
         for sample in self.testing_y:
             self.log_loss_weights.append(class_weights[str(sample)])
+            
+            
+    def get_cv_indices(self):
+        """
+        Gets indices for rows to be used during cross-validation.
+        """
+        if self.full_df['Dates'][0] > self.full_df['Dates'][len(self.full_df) - 1]:
+            self.full_df = self.full_df[::-1]
+        self.full_df.reset_index(inplace=True)
+        self.full_df.drop('index', axis=1, inplace=True)
+        date_condition = ((self.full_df['Dates'] <= self.cv_end) &
+                          (self.full_df['Dates'] >= self.cv_start))
+        self.cv_indices = list(self.full_df[date_condition].index)
     
     
     def run_bayes_cv(self):
@@ -56,26 +73,30 @@ class NaiveBayes:
         all_testing_y = pd.Series()
         dates = []
         self.log_loss_weights = []
-        training_x = self.full_df.loc[: (self.cv_indices[0] - 1),
-                                      self.feature_names]
-        self.training_y = self.full_df.loc[: (self.cv_indices[0] - 1),
-                                           self.output_name]
-        scaler = StandardScaler()
-        scaler.fit(training_x)
-        training_x_scaled = scaler.transform(training_x)
-        naive_bayes = GaussianNB()
-        naive_bayes.fit(X=training_x_scaled, y=self.training_y)
-
-        testing_x = self.full_df[self.feature_names].loc[self.cv_indices]
-        testing_x_scaled = scaler.transform(testing_x)
-        self.testing_y = self.full_df[self.output_name].loc[self.cv_indices]
-        self.calculate_log_loss_weights()
-        predicted_probs = pd.DataFrame(naive_bayes.predict_proba(X=testing_x_scaled))
-        all_predicted_probs = all_predicted_probs.append(predicted_probs,
-                                                         ignore_index=True)
-        all_testing_y = all_testing_y.append(self.testing_y)
-        dates.extend(self.full_df['Dates'].loc[self.cv_indices])
-            
+        for test_name in range(1, self.test_name + 1):
+            self.cv_start = self.cv_params[test_name]['cv_start']
+            self.cv_end = self.cv_params[test_name]['cv_end']
+            self.get_cv_indices()
+            training_x = self.full_df.loc[: (self.cv_indices[0] - 1),
+                                          self.feature_names]
+            self.training_y = self.full_df.loc[: (self.cv_indices[0] - 1),
+                                               self.output_name]
+            scaler = StandardScaler()
+            scaler.fit(training_x)
+            training_x_scaled = scaler.transform(training_x)
+            naive_bayes = GaussianNB()
+            naive_bayes.fit(X=training_x_scaled, y=self.training_y)
+    
+            testing_x = self.full_df[self.feature_names].loc[self.cv_indices]
+            testing_x_scaled = scaler.transform(testing_x)
+            self.testing_y = self.full_df[self.output_name].loc[self.cv_indices]
+            self.calculate_log_loss_weights()
+            predicted_probs = pd.DataFrame(naive_bayes.predict_proba(X=testing_x_scaled))
+            all_predicted_probs = all_predicted_probs.append(predicted_probs,
+                                                             ignore_index=True)
+            all_testing_y = all_testing_y.append(self.testing_y)
+            dates.extend(self.full_df['Dates'].loc[self.cv_indices])
+                
         self.bayes_cv_error = log_loss(y_true=all_testing_y,
                                        y_pred=all_predicted_probs,
                                        sample_weight=self.log_loss_weights)
