@@ -21,7 +21,7 @@ Modules: [requirements.txt](https://github.com/tzhangwps/Recession-Predictor/blo
 1. Download all folders and files in the repository. Maintain the file organization structure.
 2. Get your personal FRED API key [here](https://research.stlouisfed.org/docs/api/api_key.html)
 3. Copy and paste your FRED API key into the `fred_api_key` object in Line 9 of `RecessionPredictor_paths.py` on your local computer.
-4. Run `RecessionPredictor_mater.py` via the command line. It takes one positional argument `process`, whose choices are `backtest` or `deploy`:
+4. Run `RecessionPredictor_master.py` via the command line. It takes one positional argument `process`, whose choices are `backtest` or `deploy`:
 - `backtest`: runs all modules required for backtesting models. These modules get the data, perform exploratory analysis, build features, conduct backtests, and plot results from the backtest.
 - `deploy`: runs all modules required for model deployment. These modules get the data, build features, and deploy the chosen model onto the most recent data. Model outputs are saved to th `deployment_chart.csv` file.
 
