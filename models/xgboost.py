@@ -51,6 +51,7 @@ class XGBoost:
                             7, 7.5, 8, 8.5, 9, 9.5, 10]
         self.metadata = {}
         self.importances = []
+        self.scale_pos_weight = 1
 
 
     def calculate_log_loss_weights(self):
@@ -67,6 +68,9 @@ class XGBoost:
                 / len(self.training_y))
             multiplier = desired_weight / training_frequency
             class_weights[str(label)] = multiplier
+            
+            if int(label) == 1:
+                self.scale_pos_weight = multiplier
         
         for sample in self.testing_y:
             self.log_loss_weights.append(class_weights[str(sample)])
@@ -110,6 +114,8 @@ class XGBoost:
                     training_x_scaled = scaler.transform(training_x)
                     testing_x = self.full_df[self.feature_names].loc[self.cv_indices]
                     testing_x_scaled = scaler.transform(testing_x)
+                    self.testing_y = self.full_df[self.output_name].loc[self.cv_indices]
+                    self.calculate_log_loss_weights()
                     xgboost = XGBClassifier(max_depth=depth,
                                             min_child_weight=child_weight,
                                             gamma=0, learning_rate=0.1,
@@ -118,11 +124,10 @@ class XGBoost:
                                             colsample_bytree=1,
                                             objective='binary:logistic',
                                             booster='gbtree', silent=True,
-                                            random_state=123)
+                                            random_state=123,
+                                            scale_pos_weight=self.scale_pos_weight)
                     xgboost.fit(X=training_x_scaled, y=self.training_y)
                     
-                    self.testing_y = self.full_df[self.output_name].loc[self.cv_indices]
-                    self.calculate_log_loss_weights()
                     predicted_probs = pd.DataFrame(xgboost.predict_proba(testing_x_scaled))
                     all_predicted_probs = all_predicted_probs.append(predicted_probs,
                                                                      ignore_index=True)
@@ -164,6 +169,8 @@ class XGBoost:
                 training_x_scaled = scaler.transform(training_x)
                 testing_x = self.full_df[self.feature_names].loc[self.cv_indices]
                 testing_x_scaled = scaler.transform(testing_x)
+                self.testing_y = self.full_df[self.output_name].loc[self.cv_indices]
+                self.calculate_log_loss_weights()
                 xgboost = XGBClassifier(max_depth=self.optimal_depth,
                                         min_child_weight=self.optimal_child_weight,
                                         gamma=0, learning_rate=0.1,
@@ -172,13 +179,12 @@ class XGBoost:
                                         colsample_bytree=1,
                                         objective='binary:logistic',
                                         booster='gbtree', silent=True,
-                                        random_state=123)
+                                        random_state=123,
+                                        scale_pos_weight=self.scale_pos_weight)
                 xgboost.fit(X=training_x_scaled, y=self.training_y)
                 feature_importances = pd.DataFrame(xgboost.feature_importances_).T
                 feature_importances.rename(columns=self.feature_dict, inplace=True)
                 
-                self.testing_y = self.full_df[self.output_name].loc[self.cv_indices]
-                self.calculate_log_loss_weights()
                 predicted_probs = pd.DataFrame(xgboost.predict_proba(testing_x_scaled))
                 all_predicted_probs = all_predicted_probs.append(predicted_probs,
                                                                  ignore_index=True)
@@ -227,6 +233,8 @@ class XGBoost:
         scaler = StandardScaler()
         scaler.fit(training_x)
         training_x_scaled = scaler.transform(training_x)
+        self.testing_y = self.full_df[self.output_name].loc[self.pred_indices]
+        self.calculate_log_loss_weights()
         xgboost = XGBClassifier(max_depth=self.optimal_depth,
                                 min_child_weight=self.optimal_child_weight,
                                 gamma=0, learning_rate=0.1,
@@ -235,15 +243,14 @@ class XGBoost:
                                 colsample_bytree=1,
                                 objective='binary:logistic',
                                 booster='gbtree', silent=True,
-                                random_state=123)
+                                random_state=123,
+                                scale_pos_weight=self.scale_pos_weight)
         xgboost.fit(X=training_x_scaled, y=self.training_y)
         self.importances = pd.DataFrame(xgboost.feature_importances_).T
         self.importances.rename(columns=self.feature_dict, inplace=True)
 
         testing_x = self.full_df[self.feature_names].loc[self.pred_indices]
         testing_x_scaled = scaler.transform(testing_x)
-        self.testing_y = self.full_df[self.output_name].loc[self.pred_indices]
-        self.calculate_log_loss_weights()
         predicted_probs = pd.DataFrame(xgboost.predict_proba(testing_x_scaled))
         all_predicted_probs = all_predicted_probs.append(predicted_probs,
                                                          ignore_index=True)

@@ -112,7 +112,8 @@ class ElasticNet:
                     elastic_net = SGDClassifier(loss='log', penalty='elasticnet',
                                                 alpha=alpha, l1_ratio=l1_ratio,
                                                 max_iter=1000, tol=1e-3,
-                                                random_state=123)
+                                                random_state=123,
+                                                class_weight='balanced')
                     elastic_net.fit(X=training_x_scaled, y=self.training_y)
                     
                     self.testing_y = self.full_df[self.output_name].loc[self.cv_indices]
@@ -167,7 +168,8 @@ class ElasticNet:
                                     alpha=self.optimal_alpha,
                                     l1_ratio=self.optimal_l1_ratio,
                                     max_iter=1000, tol=1e-3,
-                                    random_state=123)
+                                    random_state=123,
+                                    class_weight='balanced')
         elastic_net.fit(X=training_x_scaled, y=self.training_y)
         self.coefficients = pd.DataFrame(elastic_net.coef_)
         self.coefficients.rename(columns=self.feature_dict, inplace=True)
