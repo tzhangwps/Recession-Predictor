@@ -105,7 +105,8 @@ class SupportVectorMachine:
                     scaler.fit(training_x)
                     training_x_scaled = scaler.transform(training_x)
                     svm = SVC(C=C, kernel='rbf', gamma=gamma, probability=True,
-                              tol=1e-3, random_state=123)
+                              tol=1e-3, random_state=123,
+                              class_weight='balanced')
                     svm.fit(X=training_x_scaled, y=self.training_y)
                     svm_count = len(svm.support_) / len(training_x_scaled)
                     testing_x = self.full_df[self.feature_names].loc[self.cv_indices]
@@ -157,7 +158,8 @@ class SupportVectorMachine:
         scaler.fit(training_x)
         training_x_scaled = scaler.transform(training_x)
         svm = SVC(C=self.optimal_C, kernel='rbf', gamma=self.optimal_gamma,
-                  probability=True, tol=1e-3, random_state=123)
+                  probability=True, tol=1e-3, random_state=123,
+                  class_weight='balanced')
         svm.fit(X=training_x_scaled, y=self.training_y)
         self.support_vector_count_as_percent = len(svm.support_) / len(training_x_scaled)
 
