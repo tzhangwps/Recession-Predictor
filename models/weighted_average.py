@@ -20,10 +20,10 @@ class WeightedAverage:
         self.predictions_by_model = {}
         self.weighted_average_predictions = {}
         self.metadata={}
-        self.rank_scheme = {1: 0.25,
-                            2: 0.25,
-                            3: 0.25,
-                            4: 0.25,
+        self.rank_scheme = {1: 0.40,
+                            2: 0.30,
+                            3: 0.20,
+                            4: 0.10,
                             5: 0.00,
                             6: 0.00}
             
