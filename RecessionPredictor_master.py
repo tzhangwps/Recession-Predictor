@@ -18,7 +18,14 @@ import src.visualization.deployment_results as deploy_results
 
 now = dt.datetime.now()
 month = now.strftime('%m')
-year = now.year 
+year = now.year
+
+if now.day < 7:
+    raise Exception("""
+                    Invalid date. Please run this program on or after
+                    the 7th calendar day of the current month.
+                    """)
+    
 parser = argparse.ArgumentParser()
 parser.add_argument('process', type=str,
                     help=
