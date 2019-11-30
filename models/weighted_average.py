@@ -11,8 +11,8 @@ class WeightedAverage:
     
     def __init__(self):
         """
-        rank_scheme: weights applied to each model rank, where higher ranks
-        correspond to models with better cross-validation performance.
+        rank_scheme: weights applied to each model rank,
+        where the first-ranked model is the best.
         """
         self.model_names = []
         self.model_weights = {}
