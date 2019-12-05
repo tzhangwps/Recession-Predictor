@@ -119,7 +119,7 @@ class ElasticNet:
                     self.testing_y = self.full_df[self.output_name].loc[self.cv_indices]
                     self.calculate_log_loss_weights()
     
-                    coefficients = pd.DataFrame(elastic_net.coef_)
+                    coefficients = pd.DataFrame(elastic_net.coef_).T
                     coefficients.rename(columns=self.feature_dict, inplace=True)
                     predicted_probs = pd.DataFrame(elastic_net.predict_proba(X=testing_x_scaled))
                     all_predicted_probs = all_predicted_probs.append(predicted_probs,
@@ -171,7 +171,7 @@ class ElasticNet:
                                     random_state=123,
                                     class_weight='balanced')
         elastic_net.fit(X=training_x_scaled, y=self.training_y)
-        self.coefficients = pd.DataFrame(elastic_net.coef_)
+        self.coefficients = pd.DataFrame(elastic_net.coef_).T
         self.coefficients.rename(columns=self.feature_dict, inplace=True)
 
         testing_x = self.full_df[self.feature_names].loc[self.pred_indices]
