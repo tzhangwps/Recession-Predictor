@@ -148,7 +148,7 @@ class MakeDataset:
         now = datetime.now()
         month = now.strftime('%m')
         year = now.year        
-        most_recent_date = '{}-{}-07'.format(year, month)
+        most_recent_date = '{}-{}-08'.format(year, month)
         print('\nGetting data from FRED API as of {}...'.format(most_recent_date))
         
         for series_name in list(self.fred_series_ids.keys()):
