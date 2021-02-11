@@ -109,6 +109,8 @@ class DataSeries:
             for index in range(0, len(series_dataframe))])
         self.values.extend([float(series_dataframe['Adj Close'][index])
             for index in range(0, len(series_dataframe))])
+        
+        
 
         
 class MakeDataset:
@@ -200,7 +202,21 @@ class MakeDataset:
                     success = True
             self.primary_dictionary_output[series_name] = series_data
         print('Finished getting data from Yahoo Finance!')
-
+        
+        
+    def yahoo_data_sp500_fix(self):
+        """
+        For some reason Yahoo Finance is no longer providing monthly
+        S&P 500 data past the cutoff_date. So will need to retrieve all
+        S&P 500 data prior to cutoff_date from a previous run of the code.
+        """
+        sp500_precutoff_data = pd.read_json(path.sp500_precutoff_data)
+        sp500_precutoff_data.sort_index(inplace=True)
+        cutoff_date = self.primary_dictionary_output['S&P_500_Index'].dates[::-1][0]
+        cutoff_date_mask = sp500_precutoff_data.loc[:,'Dates'] < cutoff_date
+        self.primary_dictionary_output['S&P_500_Index'].dates.extend(sp500_precutoff_data.loc[cutoff_date_mask, 'Dates'])
+        self.primary_dictionary_output['S&P_500_Index'].values.extend(sp500_precutoff_data.loc[cutoff_date_mask, 'S&P_500_Index'])
+        
 
     def find_shortest_series(self):
         """
@@ -258,6 +274,7 @@ class MakeDataset:
         print('\nGetting primary data from APIs...')
         self.get_fred_data()
         self.get_yahoo_data()
+        self.yahoo_data_sp500_fix()
         self.find_shortest_series()
         self.combine_primary_data()
         
