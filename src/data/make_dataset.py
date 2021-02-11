@@ -111,8 +111,6 @@ class DataSeries:
             for index in range(0, len(series_dataframe))])
         
         
-
-        
 class MakeDataset:
     """
     The manager class for this module.
