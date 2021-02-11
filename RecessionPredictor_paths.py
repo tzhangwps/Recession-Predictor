@@ -6,10 +6,12 @@ import datetime as dt
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))   
 
-fred_api_key = ''
+fred_api_key = 'a4ac36498b855f9f9f786164f19e1688'
 now = dt.datetime.now()
 month = now.strftime('%m')
 year = now.year
+sp500_precutoff_data = (str(os.getcwd()) +
+                        '\\data\\raw\\SP500_pre-cutoff_data.json')
 data_primary = (str(os.getcwd()) +
                 '\\data\\raw\\primary_dataset_v{}_{}_01.json'.format(year, month))
 data_primary_most_recent = (str(os.getcwd()) +
