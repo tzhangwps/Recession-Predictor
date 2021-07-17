@@ -18,6 +18,7 @@ class YahooData:
     Retrieves data from Yahoo Finance.
     
     Original code source: https://stackoverflow.com/questions/44225771/scraping-historical-data-from-yahoo-finance-with-python
+    Correct headers: https://stackoverflow.com/questions/68259148/getting-404-error-for-certain-stocks-and-pages-on-yahoo-finance-python
     """
     timeout = 2
     crumb_link = 'https://finance.yahoo.com/quote/{0}/history?p={0}'
@@ -28,17 +29,25 @@ class YahooData:
     def __init__(self, symbol, days_back=7):
         """
         symbol: ticker symbol for the asset to be pulled.
+        Correct headers: https://stackoverflow.com/questions/68259148/getting-404-error-for-certain-stocks-and-pages-on-yahoo-finance-python
         """
         self.symbol = str(symbol)
         self.session = req.Session()
         self.dt = timedelta(days=days_back)
+        self.headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                        'Accept-Language': 'en-US,en;q=0.5',
+                        'DNT': '1', # Do Not Track Request Header 
+                        'Connection': 'close'}
 
 
     def get_crumb(self):
         """
         Original code source: https://stackoverflow.com/questions/44225771/scraping-historical-data-from-yahoo-finance-with-python
         """
-        response = self.session.get(self.crumb_link.format(self.symbol), timeout=self.timeout)
+        response = self.session.get(self.crumb_link.format(self.symbol),
+                                    headers=self.headers,
+                                    timeout=self.timeout)
         response.raise_for_status()
         match = re.search(self.crumble_regex, response.text)
         if not match:
@@ -58,7 +67,7 @@ class YahooData:
         datefrom = -630961200
 #       line in original code: datefrom = int((now - self.dt).timestamp())
         url = self.quote_link.format(quote=self.symbol, dfrom=datefrom, dto=dateto, crumb=self.crumb)
-        response = self.session.get(url)
+        response = self.session.get(url, headers=self.headers)
         response.raise_for_status()
         return pd.read_csv(StringIO(response.text), parse_dates=['Date'])
 
