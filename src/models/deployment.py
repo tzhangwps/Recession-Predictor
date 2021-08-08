@@ -186,6 +186,10 @@ class Deployer:
         self.testing_dates[6] = {'cv_start': '2003-08-01', 
                                  'cv_end': '2010-09-01', 
                                  'pred_start': '2010-10-01',
+                                 'pred_end': '2021-07-01'}
+        self.testing_dates[7] = {'cv_start': '2010-10-01', 
+                                 'cv_end': '2021-07-01', 
+                                 'pred_start': '2021-08-01',
                                  'pred_end': most_recent_date}
     
     

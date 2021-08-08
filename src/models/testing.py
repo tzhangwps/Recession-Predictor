@@ -327,6 +327,10 @@ class Backtester:
                                  'cv_end': '2003-07-01', 
                                  'pred_start': '2003-08-01',
                                  'pred_end': '2010-09-01'}
+        self.testing_dates[6] = {'cv_start': '2003-08-01', 
+                                 'cv_end': '2010-09-01', 
+                                 'pred_start': '2010-10-01',
+                                 'pred_end': '2021-07-01'}
     
     
     def perform_backtests(self):
