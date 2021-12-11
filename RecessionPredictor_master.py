@@ -20,10 +20,10 @@ now = dt.datetime.now()
 month = now.strftime('%m')
 year = now.year
 
-if now.day < 7:
+if now.day < 8:
     raise Exception("""
                     Invalid date. Please run this program on or after
-                    the 7th calendar day of the current month.
+                    the 8th calendar day of the current month.
                     """)
     
 parser = argparse.ArgumentParser()
