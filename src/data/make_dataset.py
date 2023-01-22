@@ -22,7 +22,7 @@ class YahooData:
     """
     timeout = 2
     crumb_link = 'https://finance.yahoo.com/quote/{0}/history?p={0}'
-    crumble_regex = r'CrumbStore":{"crumb":"(.*?)"}'
+    crumble_regex = r'"crumb":"(.*?)"}'
     quote_link = 'https://query1.finance.yahoo.com/v7/finance/download/{quote}?period1={dfrom}&period2={dto}&interval=1mo&events=history&crumb={crumb}'
 
 
