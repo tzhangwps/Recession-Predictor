@@ -115,9 +115,8 @@ class SupportVectorMachine:
                     self.calculate_log_loss_weights()
                     
                     predicted_probs = pd.DataFrame(svm.predict_proba(X=testing_x_scaled))
-                    all_predicted_probs = all_predicted_probs.append(predicted_probs,
-                                                                     ignore_index=True)
-                    all_testing_y = all_testing_y.append(self.testing_y)
+                    all_predicted_probs = pd.concat([all_predicted_probs, predicted_probs], ignore_index=True)
+                    all_testing_y = pd.concat([all_testing_y, self.testing_y])
                     dates.extend(self.full_df['Dates'].loc[self.cv_indices])
                         
                 log_loss_score = log_loss(y_true=all_testing_y,
@@ -166,9 +165,9 @@ class SupportVectorMachine:
         testing_x_scaled = scaler.transform(testing_x)
         self.testing_y = self.full_df[self.output_name].loc[self.pred_indices]
         predicted_probs = pd.DataFrame(svm.predict_proba(X=testing_x_scaled))
-        all_predicted_probs = all_predicted_probs.append(predicted_probs,
-                                                         ignore_index=True)
-        all_testing_y = all_testing_y.append(self.testing_y)
+        
+        all_predicted_probs = pd.concat([all_predicted_probs, predicted_probs], ignore_index=True)
+        all_testing_y = pd.concat([all_testing_y, self.testing_y])
         dates.extend(self.full_df['Dates'].loc[self.pred_indices])
             
         self.svm_predictions['Dates'] = dates
