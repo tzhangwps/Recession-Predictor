@@ -23,9 +23,9 @@ class YahooData:
     timeout = 2
     crumb_link = 'https://finance.yahoo.com/quote/{0}/history?p={0}'
     crumble_regex = r'crumb:(.?),'
-    quote_link = 'https://query1.finance.yahoo.com/v7/finance/download/{quote}?period1={dfrom}&period2={dto}&interval=1mo&events=history&crumb={crumb}'
-
-
+    quote_link = 'https://query2.finance.yahoo.com/v8/finance/chart/{quote}?period1={dfrom}&period2={dto}&interval=1mo&events=history&crumb={crumb}'
+    
+    
     def __init__(self, symbol, days_back=7):
         """
         symbol: ticker symbol for the asset to be pulled.
@@ -39,8 +39,8 @@ class YahooData:
                         'Accept-Language': 'en-US,en;q=0.5',
                         'DNT': '1', # Do Not Track Request Header 
                         'Connection': 'close'}
-
-
+    
+    
     def get_crumb(self):
         """
         Original code source: https://stackoverflow.com/questions/44225771/scraping-historical-data-from-yahoo-finance-with-python
@@ -54,8 +54,8 @@ class YahooData:
             raise ValueError('Could not get crumb from Yahoo Finance')
         else:
             self.crumb = match.group(1)
-
-
+    
+    
     def get_quote(self):
         """
         Original code source: https://stackoverflow.com/questions/44225771/scraping-historical-data-from-yahoo-finance-with-python
@@ -69,7 +69,8 @@ class YahooData:
         url = self.quote_link.format(quote=self.symbol, dfrom=datefrom, dto=dateto, crumb=self.crumb)
         response = self.session.get(url, headers=self.headers)
         response.raise_for_status()
-        return pd.read_csv(StringIO(response.text), parse_dates=['Date'])
+    
+        return pd.read_json(StringIO(response.text))
 
 
 class DataSeries:
@@ -105,19 +106,19 @@ class DataSeries:
         series_id: ticker symbol for the asset to be pulled.
         """
         series_id = str(series_id)
-        series_dataframe = YahooData(series_id).get_quote()[::-1]
-        series_dataframe.reset_index(inplace=True)
-        series_dataframe.drop('index', axis=1, inplace=True)
-        most_recent_day = datetime.strptime(str(series_dataframe['Date'][0])[:10],
-                                            '%Y-%m-%d').day
+        series_dataframe    = YahooData(series_id).get_quote()
+        timestamplist       = series_dataframe["chart"]["result"][0]["timestamp"]
+        lastfirst_date      = [datetime.fromtimestamp(i).strftime('%Y-%m-%d') for i in timestamplist][::-1]
+        lastfirst_adjclose  = series_dataframe["chart"]["result"][0]["indicators"]["adjclose"][0]["adjclose"][::-1]
+    
+        most_recent_day = datetime.strptime(lastfirst_date[0], '%Y-%m-%d').day
         if most_recent_day != 1:
-            series_dataframe = series_dataframe[1:]
-            series_dataframe.reset_index(inplace=True)
-            series_dataframe.drop('index', axis=1, inplace=True)
-        self.dates.extend([str(series_dataframe['Date'][index])[:10]
-            for index in range(0, len(series_dataframe))])
-        self.values.extend([float(series_dataframe['Adj Close'][index])
-            for index in range(0, len(series_dataframe))])
+            lastfirst_date.pop(0)
+            lastfirst_adjclose.pop(0)
+    
+        #[:10] get first 10 words can skip
+        self.dates.extend([str(lastfirst_date[index])           for index in range(0, len(lastfirst_date))])
+        self.values.extend([float(lastfirst_adjclose[index])    for index in range(0, len(lastfirst_adjclose))])
         
         
 class MakeDataset:
@@ -146,7 +147,7 @@ class MakeDataset:
         self.shortest_series_name = ''
         self.shortest_series_length = 1000000
         self.secondary_df_output = pd.DataFrame()
-
+    
     
     def get_fred_data(self):
         """
@@ -224,7 +225,7 @@ class MakeDataset:
         self.primary_dictionary_output['S&P_500_Index'].dates.extend(sp500_precutoff_data.loc[cutoff_date_mask, 'Dates'])
         self.primary_dictionary_output['S&P_500_Index'].values.extend(sp500_precutoff_data.loc[cutoff_date_mask, 'S&P_500_Index'])
         
-
+    
     def find_shortest_series(self):
         """
         Finds the length and name of the shortes series in the primary
@@ -271,8 +272,8 @@ class MakeDataset:
         self.primary_df_output.to_json(path.data_primary)
         self.primary_df_output.to_json(path.data_primary_most_recent)
         print('\nPrimary dataset saved to {}'.format(path.data_primary_most_recent))
-
-
+    
+    
     def get_primary_data(self):
         """
         Gets primary data from FRED API and Yahoo Finance.
