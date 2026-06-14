@@ -77,11 +77,46 @@ class DataSeries:
     """
     Contains methods and objects to retrieve data from FRED and Yahoo Finance.
     """
+    fred_missing_value_imputations = {
+        'UNRATE': {
+            '2025-10-01': {
+                'value': 4.45,
+                'method': 'linear interpolation between September 2025 and November 2025'
+            }
+        },
+        'CPIAUCSL': {
+            '2025-10-01': {
+                'value': 324.6537423702369,
+                'method': 'log-linear interpolation between September 2025 and November 2025'
+            }
+        }
+    }
     
     
     def __init__(self):
         self.dates = []
         self.values = []
+        self.imputations = []
+        
+        
+    def impute_fred_missing_value(self, series_id, observation_date):
+        """
+        Applies explicit one-off imputations for known FRED data gaps.
+        """
+        series_imputations = self.fred_missing_value_imputations.get(series_id, {})
+        imputation = series_imputations.get(observation_date)
+        if imputation is None:
+            raise ValueError('Missing FRED observation for {} on {}, with no imputation rule.'.format(
+                             series_id, observation_date))
+        
+        self.imputations.append({'series_id': series_id,
+                                 'date': observation_date,
+                                 'value': imputation['value'],
+                                 'method': imputation['method']})
+        print('\t   Imputed missing FRED value for {} on {}: {} ({})'.format(
+              series_id, observation_date, imputation['value'],
+              imputation['method']))
+        return imputation['value']
         
         
     def fred_response(self, params):
@@ -94,9 +129,15 @@ class DataSeries:
         fred_request = req.get(url='https://api.stlouisfed.org/fred/series/observations',
                                params=params)
         fred_json = json.loads(fred_request.text)['observations']
+        series_id = params.get('series_id')
         for observation in fred_json:
-            self.dates.append(str(observation['date']))
-            self.values.append(float(observation['value']))
+            observation_date = str(observation['date'])
+            observation_value = observation['value']
+            if observation_value == '.':
+                observation_value = self.impute_fred_missing_value(series_id,
+                                                                   observation_date)
+            self.dates.append(observation_date)
+            self.values.append(float(observation_value))
          
             
     def yahoo_response(self, series_id):
